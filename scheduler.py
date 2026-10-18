@@ -1,7 +1,8 @@
 # scheduler.py
 
-
 class Owner:
+    """Stores owner information and scheduling preferences."""
+
     def __init__(self, name, available_time, preference):
         self.name = name
         self.available_time = int(available_time)
@@ -9,12 +10,16 @@ class Owner:
 
 
 class Pet:
+    """Represents a pet profile."""
+
     def __init__(self, name, species):
         self.name = name
         self.species = species
 
 
 class Task:
+    """Represents a pet care task."""
+
     def __init__(self, title, duration, priority):
         self.title = title
         self.duration = int(duration)
@@ -22,8 +27,10 @@ class Task:
 
 
 class Scheduler:
+    """Generates a task schedule based on owner preferences."""
+
     def __init__(self):
-        # Used to rank priorities
+        """Initialize priority rankings."""
         self.priority_order = {
             "high": 1,
             "medium": 2,
@@ -31,24 +38,11 @@ class Scheduler:
         }
 
     def generate_plan(self, tasks, owner):
-        """
-        Create a schedule based on the owner's preference
-        and available time.
+        """Create a schedule using the owner's preference."""
 
-        Returns:
-            plan: tasks that fit in the schedule
-            skipped: tasks that could not fit
-        """
-
-        # Make a copy so the original list is not changed
         ranked_tasks = list(tasks)
 
-        # -----------------------------------
-        # Rank Tasks
-        # -----------------------------------
-
         if owner.preference == "Priority First":
-
             ranked_tasks.sort(
                 key=lambda task: (
                     self.priority_order.get(
@@ -60,14 +54,9 @@ class Scheduler:
             )
 
         elif owner.preference == "Shortest Tasks First":
-
             ranked_tasks.sort(
                 key=lambda task: task.duration
             )
-
-        # -----------------------------------
-        # Build Schedule
-        # -----------------------------------
 
         plan = []
         skipped = []
@@ -77,13 +66,10 @@ class Scheduler:
         for task in ranked_tasks:
 
             if task.duration <= remaining_time:
-
                 plan.append(task)
-
                 remaining_time -= task.duration
 
             else:
-
                 skipped.append(task)
 
         return plan, skipped
