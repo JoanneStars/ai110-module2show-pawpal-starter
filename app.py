@@ -1,7 +1,6 @@
 import streamlit as st
 
-from scheduler import Owner, Pet, Task, Scheduler
-
+from pawpal_system import Owner, Pet, Task, Scheduler
 
 # ===================================
 # Page Configuration
@@ -14,16 +13,20 @@ st.set_page_config(
 )
 
 st.title("🐾 PawPal+")
-st.caption("Pet Care Planning Assistant")
-
+st.caption("Smart Pet Care Management System")
 
 # ===================================
 # Session State
 # ===================================
 
-if "tasks" not in st.session_state:
-    st.session_state.tasks = []
+if "owner" not in st.session_state:
+    st.session_state.owner = None
 
+if "pets" not in st.session_state:
+    st.session_state.pets = []
+
+if "selected_pet" not in st.session_state:
+    st.session_state.selected_pet = None
 
 # ===================================
 # Owner Information
@@ -33,31 +36,13 @@ st.header("Owner Information")
 
 owner_name = st.text_input(
     "Owner Name",
-    value="Jordan"
-)
-
-available_time = st.number_input(
-    "Available Time (minutes)",
-    min_value=10,
-    max_value=1440,
-    value=60,
-    step=5
-)
-
-owner_preference = st.selectbox(
-    "Scheduling Preference",
-    [
-        "Priority First",
-        "Shortest Tasks First"
-    ]
-)
-
+    value="Joanne")
 
 # ===================================
 # Pet Information
 # ===================================
 
-st.header("Pet Information")
+st.header("Add Pet")
 
 pet_name = st.text_input(
     "Pet Name",
@@ -73,121 +58,158 @@ species = st.selectbox(
     ]
 )
 
+age = st.number_input(
+    "Age",
+    min_value=0,
+    max_value=30,
+    value=1
+)
+
+if st.button("Add Pet"):
+
+    if pet_name.strip():
+
+        new_pet = Pet(
+            pet_name.strip(),
+            species,
+            age
+        )
+
+        st.session_state.pets.append(new_pet)
+
+        st.success(
+            f"{pet_name} added successfully!"
+        )
+
+    else:
+
+        st.warning(
+            "Please enter a pet name."
+        )
 
 # ===================================
-# Pet Care Task Entry
+# View Pets
 # ===================================
 
-st.header("Pet Care Tasks")
+st.subheader("Saved Pets")
 
-task_title = st.text_input(
-    "Task Title",
+if st.session_state.pets:
+
+    pet_names = [
+        pet.name
+        for pet in st.session_state.pets
+    ]
+
+    selected_name = st.selectbox(
+        "Choose a Pet",
+        pet_names
+    )
+
+    for pet in st.session_state.pets:
+
+        if pet.name == selected_name:
+            st.session_state.selected_pet = pet
+
+        st.write(
+            f"🐾 {pet.name} "
+            f"({pet.species}, Age {pet.age})"
+        )
+
+else:
+
+    st.info(
+        "No pets added yet."
+    )
+
+# ===================================
+# Task Entry
+# ===================================
+
+st.header("Add Task")
+
+task_description = st.text_input(
+    "Task Description",
     value="Morning Walk"
+)
+
+task_time = st.text_input(
+    "Time (HH:MM)",
+    value="08:00"
 )
 
 duration = st.number_input(
     "Duration (minutes)",
     min_value=1,
     max_value=240,
-    value=20,
-    step=1
+    value=20
 )
 
-priority = st.selectbox(
-    "Priority",
+frequency = st.selectbox(
+    "Frequency",
     [
-        "high",
-        "medium",
-        "low"
+        "Once",
+        "Daily",
+        "Weekly"
     ]
 )
 
+if st.button("Add Task to Selected Pet"):
 
-# ===================================
-# Add / Clear Task Buttons
-# ===================================
+    if st.session_state.selected_pet is None:
 
-col1, col2 = st.columns(2)
-
-with col1:
-    if st.button(
-        "Add Task",
-        use_container_width=True
-    ):
-        cleaned_title = task_title.strip()
-
-        new_task = {
-            "title": cleaned_title,
-            "duration": int(duration),
-            "priority": priority
-        }
-
-        duplicate = any(
-            task["title"].lower() == cleaned_title.lower()
-            and task["duration"] == int(duration)
-            and task["priority"] == priority
-            for task in st.session_state.tasks
+        st.warning(
+            "Please add and select a pet first."
         )
 
-        if not cleaned_title:
-            st.warning(
-                "Please enter a task title."
-            )
+    else:
 
-        elif duplicate:
-            st.warning(
-                "This task has already been added."
-            )
+        task = Task(
+            id=len(
+                st.session_state.selected_pet.tasks
+            ) + 1,
+            description=task_description,
+            due_time=task_time,
+            duration_mins=duration,
+            frequency=frequency
+        )
 
-        else:
-            st.session_state.tasks.append(new_task)
+        st.session_state.selected_pet.add_task(task)
 
-            st.success(
-                "Task added."
-            )
-
-
-with col2:
-    if st.button(
-        "Clear Tasks",
-        use_container_width=True
-    ):
-        st.session_state.tasks = []
-        st.rerun()
-
+        st.success(
+            "Task added successfully."
+        )
 
 # ===================================
-# Current Tasks
+# Display Tasks
 # ===================================
 
-st.subheader("Current Tasks")
+st.header("Current Tasks")
 
-if st.session_state.tasks:
-    for i, task in enumerate(st.session_state.tasks):
+if st.session_state.selected_pet:
 
-        task_col, delete_col = st.columns([5, 1])
+    if st.session_state.selected_pet.tasks:
 
-        with task_col:
-            st.write(
-                f"• {task['title']} "
-                f"({task['duration']} min) "
-                f"[{task['priority']}]"
+        table_data = []
+
+        for task in st.session_state.selected_pet.tasks:
+
+            table_data.append(
+                {
+                    "Task": task.description,
+                    "Time": task.due_time,
+                    "Duration": task.duration_mins,
+                    "Frequency": task.frequency,
+                    "Completed": task.is_completed
+                }
             )
 
-        with delete_col:
-            if st.button(
-                "Delete",
-                key=f"delete_{i}"
-            ):
-                st.session_state.tasks.pop(i)
-                st.rerun()
+        st.table(table_data)
 
-else:
-    st.info(
-        "No tasks added yet."
-    )
+    else:
 
-
+        st.info(
+            "No tasks assigned yet."
+        )
 # ===================================
 # Generate Schedule
 # ===================================
@@ -199,179 +221,11 @@ if st.button(
     type="primary",
     use_container_width=True
 ):
-
-    # -------------------------------
-    # Validation
-    # -------------------------------
-
+    
     if not owner_name.strip():
         st.warning(
-            "Please enter the owner's name."
+            "Please enter an owner name."
         )
 
-    elif not pet_name.strip():
-        st.warning(
-            "Please enter the pet's name."
-        )
-
-    elif not st.session_state.tasks:
-        st.warning(
-            "Please add at least one pet care task "
-            "before generating a schedule."
-        )
-
-    else:
-
-        # -------------------------------
-        # Create Owner
-        # -------------------------------
-
-        owner = Owner(
-            owner_name.strip(),
-            int(available_time),
-            owner_preference
-        )
-
-        # -------------------------------
-        # Create Pet
-        # -------------------------------
-
-        pet = Pet(
-            pet_name.strip(),
-            species
-        )
-
-        # -------------------------------
-        # Convert Tasks
-        # -------------------------------
-
-        task_objects = [
-            Task(
-                task["title"],
-                task["duration"],
-                task["priority"]
-            )
-            for task in st.session_state.tasks
-        ]
-
-        # -------------------------------
-        # Generate Schedule
-        # -------------------------------
-
-        scheduler = Scheduler()
-
-        plan, skipped = scheduler.generate_plan(
-            task_objects,
-            owner
-        )
-
-
-        # ===================================
-        # Daily Plan
-        # ===================================
-
-        st.header(
-            f"Daily Plan for {pet.name}"
-        )
-
-        total_time = 0
-
-        if plan:
-            for task in plan:
-                total_time += task.duration
-
-                st.write(
-                    f"✅ {task.title} "
-                    f"({task.duration} min) "
-                    f"[{task.priority}]"
-                )
-
-        else:
-            st.info(
-                "No tasks could be scheduled "
-                "within the available time."
-            )
-
-
-        # ===================================
-        # Schedule Summary
-        # ===================================
-
-        remaining_time = (
-            int(owner.available_time)
-            - total_time
-        )
-
-        st.write(
-            f"**Total Scheduled Time:** "
-            f"{total_time} minutes"
-        )
-
-        st.write(
-            f"**Available Time:** "
-            f"{owner.available_time} minutes"
-        )
-
-        st.write(
-            f"**Remaining Time:** "
-            f"{remaining_time} minutes"
-        )
-
-
-        # ===================================
-        # Scheduling Explanation
-        # ===================================
-
-        st.subheader(
-            "Scheduling Explanation"
-        )
-
-        st.write(
-            f"Scheduling preference: "
-            f"**{owner.preference}**"
-        )
-
-        if owner.preference == "Priority First":
-            st.write(
-                "Tasks were ranked by priority. "
-                "High-priority tasks were considered first, "
-                "followed by medium-priority and "
-                "low-priority tasks."
-            )
-
-        elif owner.preference == "Shortest Tasks First":
-            st.write(
-                "Tasks were ranked by duration. "
-                "Shorter tasks were considered before "
-                "longer tasks."
-            )
-
-        st.write(
-            "Tasks were added to the daily plan "
-            "as long as they fit within the owner's "
-            "available time."
-        )
-
-
-        # ===================================
-        # Skipped Tasks
-        # ===================================
-
-        if skipped:
-            st.subheader(
-                "Skipped Tasks"
-            )
-
-            for task in skipped:
-                st.write(
-                    f"❌ {task.title} "
-                    f"({task.duration} min) "
-                    f"[{task.priority}] "
-                    f"— insufficient remaining time"
-                )
-
-        else:
-            st.success(
-                "All pet care tasks fit "
-                "within the available time."
-            )
+    elif not st.session_state.pets:
+        st.warning("Please add at least one")

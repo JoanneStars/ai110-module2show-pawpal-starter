@@ -1,98 +1,352 @@
 # PawPal+ (Module 2 Project)
 
-You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
+PawPal+ is a Streamlit-based pet care management application that helps owners organize, prioritize, and schedule pet care activities. The system uses object-oriented programming and scheduling algorithms to manage tasks such as feeding, walking, grooming, medications, and appointments.
+
+---
 
 ## Scenario
 
-A busy pet owner needs help staying consistent with pet care. They want an assistant that can:
+A busy pet owner needs help staying consistent with pet care. PawPal+ acts as a scheduling assistant that can:
 
-- Track pet care tasks (walks, feeding, meds, enrichment, grooming, etc.)
-- Consider constraints (time available, priority, owner preferences)
-- Produce a daily plan and explain why it chose that plan
+- Track pet care tasks
+- Organize daily responsibilities
+- Detect scheduling conflicts
+- Support recurring tasks
+- Create a prioritized daily plan
+- Display scheduling decisions clearly
 
-Your job is to design the system first (UML), then implement the logic in Python, then connect it to the Streamlit UI.
+---
 
-## What you will build
+## Features
 
-Your final app should:
+### Owner Management
+- Create an owner profile
+- Store multiple pets for one owner
 
-- Let a user enter basic owner + pet info
-- Let a user add/edit tasks (duration + priority at minimum)
-- Generate a daily schedule/plan based on constraints and priorities
-- Display the plan clearly (and ideally explain the reasoning)
-- Include tests for the most important scheduling behaviors
+### Pet Management
+- Add multiple pets
+- Store species and age information
+- Associate tasks with individual pets
 
-## Getting started
+### Task Management
+- Create pet care tasks
+- Assign due times
+- Track task completion
+- Support recurring tasks
+
+### Smart Scheduling
+- Sort tasks by time
+- Filter tasks by pet
+- Filter completed and incomplete tasks
+- Detect scheduling conflicts
+- Generate recurring tasks automatically
+
+### Streamlit Interface
+- Add pets through the browser
+- Add pet care tasks
+- View current tasks
+- Generate schedules
+- View scheduling warnings
+
+---
+
+## System Architecture
+
+The application uses four primary classes:
+
+### Owner
+Stores owner information and manages pets.
+
+### Pet
+Stores pet information and assigned tasks.
+
+### Task
+Represents an individual pet care activity.
+
+### Scheduler
+Acts as the scheduling engine responsible for:
+
+- Sorting tasks
+- Filtering tasks
+- Conflict detection
+- Recurring task generation
+
+---
+
+## Getting Started
 
 ### Setup
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+
+source .venv/bin/activate
+
+# Windows
+.venv\Scripts\activate
+
 pip install -r requirements.txt
 ```
 
-### Suggested workflow
-
-1. Read the scenario carefully and identify requirements and edge cases.
-2. Draft a UML diagram (classes, attributes, methods, relationships).
-3. Convert UML into Python class stubs (no logic yet).
-4. Implement scheduling logic in small increments.
-5. Add tests to verify key behaviors.
-6. Connect your logic to the Streamlit UI in `app.py`.
-7. Refine UML so it matches what you actually built.
-
-## 🖥️ Sample Output
-
-Paste a sample of your app's CLI or Streamlit output here so a reader can see what a generated plan looks like:
-
-```
-# e.g.:
-# Daily plan for Biscuit (Golden Retriever):
-#   08:00 — Morning walk (30 min) [priority: high]
-#   09:00 — Feeding (10 min) [priority: high]
-#   ...
-```
-
-## 🧪 Testing PawPal+
+### Run the Streamlit Application
 
 ```bash
-# Run the full test suite:
-pytest
-
-# Run with coverage:
-pytest --cov
+streamlit run app.py
 ```
 
-Sample test output:
+### Run the CLI Demo
 
+```bash
+python main.py
 ```
-# Paste your pytest output here
+
+---
+
+## Sample CLI Output
+
+```text
+SORTED TASKS
+------------------------------
+08:00 | Luna | Morning Walk
+08:00 | Luna | Breakfast
+18:00 | Milo | Brush Fur
+
+COMPLETED TASKS
+------------------------------
+Milo | Brush Fur
+
+TASKS FOR LUNA
+------------------------------
+Morning Walk at 08:00
+Breakfast at 08:00
+
+CONFLICT WARNINGS
+------------------------------
+Conflict detected: Morning Walk and Breakfast are both scheduled at 08:00
+
+RECURRING TASKS
+------------------------------
+Created new recurring task: Brush Fur
 ```
 
-## 📐 Smarter Scheduling
+---
 
-> Fill in once you've implemented scheduling logic.
+## Smarter Scheduling
 
-| Feature | Method(s) | Notes |
-|---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+### Task Sorting
 
-## 📸 Demo Walkthrough
+Method:
 
-Describe your app in numbered steps so a reader can follow along without watching a video:
+```python
+Scheduler.sort_by_time()
+```
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+Tasks are sorted using Python's `sorted()` function and a lambda expression that uses the task time (`HH:MM`) as the sorting key.
 
-**Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->
+### Task Filtering
+
+Methods:
+
+```python
+Scheduler.filter_completed()
+Scheduler.filter_incomplete()
+Scheduler.filter_by_pet()
+```
+
+Allows users to:
+
+- View completed tasks
+- View incomplete tasks
+- View tasks assigned to a specific pet
+
+### Conflict Detection
+
+Method:
+
+```python
+Scheduler.check_conflicts()
+```
+
+Identifies tasks scheduled at the same time and generates a warning instead of causing a runtime error.
+
+Example:
+
+```text
+Conflict detected:
+Morning Walk and Breakfast
+are both scheduled at 08:00
+```
+
+### Recurring Tasks
+
+Method:
+
+```python
+Scheduler.generate_recurring_tasks()
+```
+
+Completed tasks with Daily or Weekly frequencies automatically generate a new occurrence for future scheduling.
+
+---
+
+## Testing PawPal+
+
+### Run the Test Suite
+
+```bash
+python -m pytest
+```
+
+### Test Coverage
+
+The automated tests verify:
+
+- Task creation
+- Task completion
+- Scheduler task sorting
+- Conflict detection
+- Recurring task generation
+- Pet task assignment
+
+### Sample Test Output
+
+```text
+===============================
+3 passed in 0.05s
+===============================
+```
+
+### Confidence Level
+
+⭐⭐⭐⭐⭐ (5/5)
+
+The system has been tested for its core scheduling functionality, including sorting, filtering, recurrence generation, and conflict detection.
+
+---
+
+## Demo Walkthrough
+
+### Step 1
+
+Launch the application:
+
+```bash
+streamlit run app.py
+```
+
+### Step 2
+
+Enter owner information including:
+
+- Owner name
+- Scheduling preferences
+
+### Step 3
+
+Add one or more pets using the Add Pet form.
+
+Example:
+
+```text
+Mochi
+Species: Cat
+Age: 2
+```
+
+### Step 4
+
+Add tasks for your pets.
+
+Example:
+
+```text
+Morning Walk
+08:00
+20 minutes
+Daily
+```
+
+### Step 5
+
+Generate a schedule.
+
+PawPal+ will:
+
+- Sort tasks chronologically
+- Detect conflicts
+- Display completed and incomplete tasks
+- Generate recurring tasks when needed
+
+### Step 6
+
+Review warnings and scheduling recommendations displayed in the application.
+
+---
+
 ## UML Diagram
- 
-![PawPal+ UML Diagram](uml.png)
-Show more lines
+
+### Initial UML
+
+Located in:
+
+```text
+diagrams/uml_draft.mmd
+```
+
+### Final UML
+
+Located in:
+
+```text
+diagrams/uml_final.mmd
+```
+
+Example relationships:
+
+```text
+Owner
+ └── Pet
+      └── Task
+
+Scheduler
+ ├── sort_by_time()
+ ├── filter_completed()
+ ├── filter_incomplete()
+ ├── filter_by_pet()
+ ├── check_conflicts()
+ └── generate_recurring_tasks()
+```
+
+---
+
+## Reflection Highlights
+
+### Design Decision
+
+I chose an object-oriented design using Owner, Pet, Task, and Scheduler classes because each class has a clear responsibility and can be expanded independently.
+
+### Scheduling Tradeoff
+
+The conflict detection algorithm checks for exact time matches only. This keeps the implementation simple and easy to understand but does not detect overlapping durations.
+
+### AI Collaboration
+
+AI was used to:
+
+- Generate UML ideas
+- Scaffold class structures
+- Suggest scheduling algorithms
+- Draft automated tests
+- Review and refine implementation choices
+
+Human oversight was used to verify correctness, simplify code, and keep the design aligned with project requirements.
+
+---
+
+## Author
+
+Joanne Jongeling
+
+CodePath AI110 Foundations of AI Engineering
+
+Module 2 Project: PawPal+
